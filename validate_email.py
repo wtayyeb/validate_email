@@ -76,18 +76,18 @@ def is_disposable(email, debug=False):
 
 
 def get_mx_ip(hostname):
-    import dns.exception
+    from dns import resolver, exception
 
     if hostname not in MX_DNS_CACHE:
         try:
-            answers = dns.resolver.query(hostname, 'MX')
+            answers = resolver.query(hostname, 'MX')
             MX_DNS_CACHE[hostname] = answers
 
-        except dns.exception.Timeout as e:
+        except exception.Timeout as e:
             return False
 
-        except dns.exception.DNSException as e:
-            if isinstance(e, dns.resolver.NXDOMAIN):  # or e.rcode == 2:  # SERVFAIL
+        except exception.DNSException as e:
+            if isinstance(e, resolver.NXDOMAIN):  # or e.rcode == 2:  # SERVFAIL
                 MX_DNS_CACHE[hostname] = None
             else:
                 raise e
@@ -127,7 +127,7 @@ def validate_email(email,
             elif mx_hosts is False:
                 return None
             for mx in mx_hosts:
-                exchange = mx.exchange
+                exchange = mx.exchange.to_text()
                 try:
                     if not verify and exchange in MX_CHECK_CACHE:
                         return MX_CHECK_CACHE[exchange]
