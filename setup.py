@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='validate_email_wt',
-    version='1.4.2',
+    version='1.4.3',
     py_modules=('validate_email',),
     author='w.Tayyeb',
     author_email='w.tayyeb@gmail.com',
