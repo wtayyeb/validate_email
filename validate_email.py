@@ -127,7 +127,7 @@ def validate_email(email,
             elif mx_hosts is False:
                 return None
             for mx in mx_hosts:
-                exchange = mx.exchange.to_text()
+                exchange = mx.exchange.to_text(omit_final_dot=True)
                 try:
                     if not verify and exchange in MX_CHECK_CACHE:
                         return MX_CHECK_CACHE[exchange]
@@ -151,24 +151,30 @@ def validate_email(email,
                     if status == 250:
                         smtp.quit()
                         return True
+                    elif status == 550:
+                        if 'unknown' in _ and '5.1.1' in _:  # postfix error for unvalid email
+                            return False
                     if debug:
                         logger.debug(u'%s answer: %s - %s', exchange, status, _)
                     smtp.quit()
                 except smtplib.SMTPServerDisconnected:  # Server not permits verify user
                     if debug:
                         logger.debug(u'%s disconected.', exchange)
+                        raise
                 except smtplib.SMTPConnectError:
                     if debug:
                         logger.debug(u'Unable to connect to %s.', exchange)
             return None
 
-    except AssertionError:
-        return False
-
-    except (socket.error) as e:
+    except socket.error as e:
         if debug:
             logger.debug('ServerError or socket.error exception raised (%s).', e)
         return None
+
+    except Exception as e:
+        if debug:
+            logger.debug('Unknown exception raised (%s).', e)
+        return False
 
     return True
 
